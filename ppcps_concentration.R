@@ -54,3 +54,19 @@
  }
  
  ppcps <- by_site(ppcps_raw)
+ 
+ # Function to get the number of sites each compounds shows up in
+ site_count <- function(dataset){
+   
+   dataset_clean <- dataset %>% 
+     janitor::clean_names() %>% 
+     filter(!str_detect(batch_1, 'Compound'), !str_detect(batch_1, 'ng/L'),
+            !str_detect(batch_1, 'Batch'), !str_detect(batch_1, 'Name')) %>% 
+     na_if('-') %>% 
+     mutate_at(vars(2:ncol(dataset)), as.numeric) %>% 
+     mutate_if(is.numeric, ~1 * (. >= 0))
+   
+     return(dataset_clean)
+ }
+
+ site_counts <- site_count(ppcps_raw)
