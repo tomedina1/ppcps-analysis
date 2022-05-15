@@ -1,5 +1,5 @@
  # ----- PPCPs Concentrations Analysis -----
-        # Taylor Medina
+               # Taylor Medina
  
  # --- PACKAGES ---
  
@@ -9,7 +9,6 @@
  library(openxlsx)
  
  # --- DATA WRANGLING ---
- 
  
  # Load in raw excel file
  ppcps_raw <- read_excel(here('data/PPCP Data.xlsx')) 
@@ -58,6 +57,7 @@
  # Function to get the number of sites each compounds shows up in
  site_count <- function(dataset){
    
+   # wrangle the dataset
    dataset_clean <- dataset %>% 
      janitor::clean_names() %>% 
      filter(!str_detect(batch_1, 'Compound'), !str_detect(batch_1, 'ng/L'),
@@ -66,7 +66,41 @@
      mutate_at(vars(2:ncol(dataset)), as.numeric) %>% 
      mutate_if(is.numeric, ~1 * (. >= 0))
    
-     return(dataset_clean)
+   # get the distinct chemicals 
+   counts <- dataset_clean[1] %>% 
+     distinct() 
+   
+   # rename columns for ease
+   colnames(counts) <- 'x'
+   
+   # site-by-site analysis
+   for (i in 2:ncol(dataset_clean)){
+     
+     # goes by each site
+     site <- dataset_clean %>% 
+       select(1, i)
+     
+     # rename for ease
+     colnames(site) <- c('x', 'y')
+     
+     # filters for where there are chemicals and then removes duplicates
+     site_filter <- site %>% 
+       filter(y == 1) %>% 
+       distinct(x, .keep_all = TRUE)
+     
+     # creates a dataframe by merging observances of the chemical for each site
+     counts <- merge(counts, site_filter, by.x = 'x', by.y = 'x', all.x = TRUE)
+   }
+   
+   # calculates the total amount of sites each chemical is in
+   count_row <- rowSums(counts[, -1], na.rm = TRUE) %>% 
+     cbind(counts[1]) %>% 
+     rev()
+  
+   return(count_row)
  }
 
  site_counts <- site_count(ppcps_raw)
+ 
+ # writes the excel sheet
+ write.xlsx(site_counts, 'counts_by_site.xlsx')
