@@ -43,6 +43,8 @@
       group_by(x) %>% 
       summarize(mean_conc = mean(y, na.rm = TRUE),
                 sd_conc = sd(y, na.rm = TRUE),
+                max = max(y),
+                min = min(y),
                 count = n()) 
     
     # appends a new sheet and saves the final workbook
