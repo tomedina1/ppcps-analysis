@@ -22,24 +22,21 @@
    final_file <- createWorkbook()
   
    # loops through each column in the dataframe
-   for (i in 2:ncol(dataset)){
+   for (i in 2:ncol(dataset)){ 
      
-    # selects the  specific site
-    site <- dataset %>% 
+
+    site <- dataset %>% # selects the  specific site
       select(1, i) 
     
-    # renames columns for ease
-    colnames(site) <- c('x', 'y')
+    colnames(site) <- c('x', 'y') # renames columns for ease
    
-    # filters out data
-    site_filter <- site %>% 
+    site_filter <- site %>%     # filters out data
       filter(x != 'ng/L', !str_detect(x, 'Batch'), 
               !str_detect(x, 'unit'), !str_detect(y, '-'),
               y != 0) %>% 
       mutate(y = as.numeric(y))
    
-    # statistical analysis
-    site_stats <- site_filter %>% 
+    site_stats <- site_filter %>% # statistical analysis
       group_by(x) %>% 
       summarize(mean_conc = mean(y, na.rm = TRUE),
                 sd_conc = sd(y, na.rm = TRUE),
@@ -68,30 +65,22 @@
      mutate_at(vars(2:ncol(dataset)), as.numeric) %>% 
      mutate_if(is.numeric, ~1 * (. >= 0))
    
-   # get the distinct chemicals 
-   counts <- dataset_clean[1] %>% 
+   counts <- dataset_clean[1] %>% # get the distinct chemicals 
      distinct() 
-   
-   # rename columns for ease
-   colnames(counts) <- 'x'
+   colnames(counts) <- 'x' # rename columns for ease
    
    # site-by-site analysis
    for (i in 2:ncol(dataset_clean)){
      
-     # goes by each site
-     site <- dataset_clean %>% 
+     site <- dataset_clean %>% # goes by each site
        select(1, i)
-     
-     # rename for ease
-     colnames(site) <- c('x', 'y')
-     
-     # filters for where there are chemicals and then removes duplicates
-     site_filter <- site %>% 
+     colnames(site) <- c('x', 'y') # rename for ease
+
+     site_filter <- site %>% # filters for where there are chemicals and then removes duplicates
        filter(y == 1) %>% 
        distinct(x, .keep_all = TRUE)
      
-     # creates a dataframe by merging observances of the chemical for each site
-     counts <- merge(counts, site_filter, by.x = 'x', by.y = 'x', all.x = TRUE)
+     counts <- merge(counts, site_filter, by.x = 'x', by.y = 'x', all.x = TRUE) # creates a dataframe by merging observances of the chemical for each site
    }
    
    # calculates the total amount of sites each chemical is in
